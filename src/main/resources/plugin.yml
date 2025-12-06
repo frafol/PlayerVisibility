@@ -5,3 +5,8 @@ api-version: 1.13
 folia-supported: true
 description: Hide all players from all player's view.
 main: it.frafol.playervisibility.PlayerVisibility
+commands:
+  playervisibility:
+    description: Hide/Show players.
+    aliases: [pvisibility]
+    usage: /playervisibility <reload|hide|show>

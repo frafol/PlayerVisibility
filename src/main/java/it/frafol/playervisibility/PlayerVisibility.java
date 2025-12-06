@@ -91,6 +91,15 @@ public final class PlayerVisibility extends JavaPlugin {
                 .relocate(schedulerrelocation)
                 .build();
 
+        final Relocation updaterrelocation = new Relocation("updater", "it{}frafol{}libs{}updater");
+        Library updater = Library.builder()
+                .groupId("com{}tchristofferson")
+                .artifactId("ConfigUpdater")
+                .version("2.1-SNAPSHOT")
+                .url("https://github.com/frafol/Config-Updater/releases/download/compile/ConfigUpdater-2.1-SNAPSHOT.jar")
+                .relocate(updaterrelocation)
+                .build();
+
         try {
             bukkitLibraryManager.loadLibrary(yaml);
         } catch (RuntimeException ignored) {
@@ -104,6 +113,7 @@ public final class PlayerVisibility extends JavaPlugin {
         }
 
         bukkitLibraryManager.loadLibrary(yaml);
+        bukkitLibraryManager.loadLibrary(updater);
         bukkitLibraryManager.loadLibrary(scheduler);
     }
 
@@ -120,7 +130,8 @@ public final class PlayerVisibility extends JavaPlugin {
 
     private void loadCommands() {
         getLogger().info("Loading commands...");
-        getServer().getPluginManager().registerEvents(new HideCommand(this), this);
+        getCommand("playervisibility").setExecutor(new HideCommand(this));
+        getCommand("playervisibility").setTabCompleter(new HideCommand(this));
     }
 
     private void loadListeners() {
@@ -244,30 +255,19 @@ public final class PlayerVisibility extends JavaPlugin {
     }
 
     private void checkUpdate() {
-
-        if (updated) {
-            return;
-        }
-
+        if (updated) return;
         if (Config.UPDATE_CHECKER.get(Boolean.class)) {
             new UpdateCheck(this).getVersion(version -> {
-
                 if (Integer.parseInt(getDescription().getVersion().replace(".", "")) < Integer.parseInt(version.replace(".", ""))) {
-
                     if (Config.AUTO_UPDATE.get(Boolean.class) && !updated) {
                         autoUpdate();
                         return;
                     }
-
-                    if (!updated) {
-                        getLogger().warning("§eThere is a new update available, download it on SpigotMC!");
-                    }
+                    if (!updated) getLogger().warning("There is a new update available, download it on SpigotMC!");
                 }
-
                 if (Integer.parseInt(getDescription().getVersion().replace(".", "")) > Integer.parseInt(version.replace(".", ""))) {
-                    getLogger().warning("§eYou are using a development version, please report any bugs!");
+                    getLogger().warning("You are using a development version, please report any bugs!");
                 }
-
             });
         }
     }

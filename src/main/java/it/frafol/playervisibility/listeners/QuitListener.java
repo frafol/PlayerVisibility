@@ -17,17 +17,11 @@ public class QuitListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onQuit(PlayerQuitEvent event) {
-
-        if (!plugin.isHided()) {
-            return;
-        }
-
+        if (!plugin.isHided()) return;
         Player player = event.getPlayer();
-
         for (Player players : plugin.getServer().getOnlinePlayers()) {
             player.showPlayer(players);
             players.showPlayer(player);
         }
-
     }
 }

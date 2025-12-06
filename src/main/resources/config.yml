@@ -50,19 +50,3 @@ worlds:
   blacklisted_worlds:
     - "world_nether"
     - "world_the_end"
-
-command:
-
-  # PlayerVisibility's commands aliases.
-  aliases:
-    - "playervisibility"
-    - "playerv"
-    - "visibility"
-    - "showplayers"
-    - "show"
-    - "sp"
-    - "showp"
-    - "hideplayers"
-    - "hide"
-    - "hp"
-    - "hidep"

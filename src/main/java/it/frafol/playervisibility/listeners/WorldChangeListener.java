@@ -1,5 +1,6 @@
 package it.frafol.playervisibility.listeners;
 
+import com.github.Anon8281.universalScheduler.UniversalScheduler;
 import it.frafol.playervisibility.PlayerVisibility;
 import it.frafol.playervisibility.enums.Config;
 import org.bukkit.entity.Player;
@@ -18,34 +19,23 @@ public class WorldChangeListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onWorldChange(PlayerChangedWorldEvent event) {
-
         Player player = event.getPlayer();
-
         if (Config.WORLD_ENABLED.get(Boolean.class)) {
             for (String blacklisted_world_names : plugin.getConfigTextFile().getConfig().getStringList("world.blacklisted_worlds")) {
-
-                if (!player.getWorld().getName().equalsIgnoreCase(blacklisted_world_names)) {
-                    continue;
-                }
-
-                if (!plugin.isHided()) {
-                    return;
-                }
-
-                plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                if (!player.getWorld().getName().equalsIgnoreCase(blacklisted_world_names)) continue;
+                if (!plugin.isHided()) return;
+                UniversalScheduler.getScheduler(plugin).runTaskLater(() -> {
                     for (Player players : plugin.getServer().getOnlinePlayers()) {
                         player.showPlayer(players);
                         players.showPlayer(player);
                     }
                 }, 5L);
-
                 return;
-
             }
         }
 
         if (!plugin.isHided()) {
-            plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+            UniversalScheduler.getScheduler(plugin).runTaskLater(() -> {
                 for (Player players : plugin.getServer().getOnlinePlayers()) {
                     player.showPlayer(players);
                     players.showPlayer(player);
@@ -54,19 +44,11 @@ public class WorldChangeListener implements Listener {
             return;
         }
 
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+        UniversalScheduler.getScheduler(plugin).runTaskLater(() -> {
             for (Player players : plugin.getServer().getOnlinePlayers()) {
-
-                if (!player.hasPermission(Config.BYPASS_PERMISSION.get(String.class))) {
-                    player.hidePlayer(players);
-                }
-
-                if (players.hasPermission(Config.BYPASS_PERMISSION.get(String.class))) {
-                    continue;
-                }
-
+                if (!player.hasPermission(Config.BYPASS_PERMISSION.get(String.class))) player.hidePlayer(players);
+                if (players.hasPermission(Config.BYPASS_PERMISSION.get(String.class))) continue;
                 players.hidePlayer(player);
-
             }
         }, 2L);
     }

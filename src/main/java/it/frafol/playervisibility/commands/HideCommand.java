@@ -3,96 +3,90 @@ package it.frafol.playervisibility.commands;
 import it.frafol.playervisibility.PlayerVisibility;
 import it.frafol.playervisibility.enums.Config;
 import it.frafol.playervisibility.objects.TextFile;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 
-public class HideCommand implements Listener {
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
-    public final PlayerVisibility plugin;
+public class HideCommand implements CommandExecutor, TabCompleter {
+
+    private final PlayerVisibility plugin;
 
     public HideCommand(PlayerVisibility plugin) {
         this.plugin = plugin;
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onCommand(PlayerCommandPreprocessEvent event) {
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
-        final String message = event.getMessage();
-
-        if (!message.startsWith("/")) {
-            return;
+        if (!sender.hasPermission(Config.PERMISSION.get(String.class))) {
+            sender.sendMessage("§dThis server is using PlayerVisibility by frafol.");
+            return true;
         }
 
-        final String command = event.getMessage().replace("/", "");
-
-        for (String alias : plugin.getConfigTextFile().getConfig().getStringList("command.aliases")) {
-
-            String[] words = command.split(" ");
-
-            if (!words[0].equalsIgnoreCase(alias)) {
-                continue;
-            }
-
-            event.setCancelled(true);
-            final Player player = event.getPlayer();
-
-            if (!player.hasPermission(Config.PERMISSION.get(String.class))) {
-                player.sendMessage("§dThis server is using PlayerVisibility by frafol.");
-                return;
-            }
-
-            if (words.length != 2) {
-                player.sendMessage(Config.USAGE.color());
-                return;
-            }
-
-            String secondWord = words[1];
-
-            switch (secondWord) {
-                case "reload":
-
-                    if (!player.hasPermission(Config.RELOAD_PERMISSION.get(String.class))) {
-                        player.sendMessage(Config.NO_PERMISSION.color());
-                        return;
-                    }
-
-                    TextFile.reloadAll();
-                    player.sendMessage(Config.RELOADED.color());
-                    return;
-
-                case "hide":
-
-                    if (plugin.isHided()) {
-                        player.sendMessage(Config.ALREADY_HIDDEN.color());
-                        return;
-                    }
-
-                    plugin.hidePlayers();
-                    player.sendMessage(Config.HIDDEN_MESSAGE.color());
-
-                    return;
-
-                case "show":
-
-                    if (!plugin.isHided()) {
-                        player.sendMessage(Config.ALREADY_SHOWN.color());
-                        return;
-                    }
-
-                    plugin.showPlayers();
-                    player.sendMessage(Config.SHOWN_MESSAGE.color());
-
-                    return;
-
-                default:
-
-                    player.sendMessage(Config.USAGE.color());
-                    return;
-
-            }
+        if (args.length != 1) {
+            sender.sendMessage(Config.USAGE.color());
+            return true;
         }
+
+        String arg = args[0].toLowerCase();
+        switch (arg) {
+            case "reload":
+                if (!sender.hasPermission(Config.RELOAD_PERMISSION.get(String.class))) {
+                    sender.sendMessage(Config.NO_PERMISSION.color());
+                    return true;
+                }
+                TextFile.reloadAll();
+                sender.sendMessage(Config.RELOADED.color());
+                break;
+
+            case "hide":
+                if (plugin.isHided()) {
+                    sender.sendMessage(Config.ALREADY_HIDDEN.color());
+                    return true;
+                }
+                plugin.hidePlayers();
+                sender.sendMessage(Config.HIDDEN_MESSAGE.color());
+                break;
+
+            case "show":
+                if (!plugin.isHided()) {
+                    sender.sendMessage(Config.ALREADY_SHOWN.color());
+                    return true;
+                }
+                plugin.showPlayers();
+                sender.sendMessage(Config.SHOWN_MESSAGE.color());
+                break;
+
+            default:
+                sender.sendMessage(Config.USAGE.color());
+                break;
+        }
+        return true;
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        if (args.length == 1) {
+            List<String> completions = new ArrayList<>();
+            List<String> subCommands = Arrays.asList("reload", "hide", "show");
+            String currentArg = args[0].toLowerCase();
+            for (String sub : subCommands) {
+                if (sub.startsWith(currentArg)) {
+                    if (sub.equals("reload")) {
+                        if (sender.hasPermission(Config.RELOAD_PERMISSION.get(String.class))) completions.add(sub);
+                    } else {
+                        completions.add(sub);
+                    }
+                }
+            }
+            return completions;
+        }
+        return null;
     }
 }
